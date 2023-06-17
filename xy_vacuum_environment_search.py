@@ -47,26 +47,26 @@ class VacuumPlanning(Problem):
             path, explored = breadth_first_graph_search(self)
             sol = path.solution()
             self.env.set_solution(sol)
-            # self.env.display_explored(explored)
-            # self.env.display_solution()
+            self.env.display_explored(explored)
+            self.env.display_solution()
         elif self.searchType == 'DFS':
             path, explored = depth_first_graph_search(self)
             sol = path.solution()
             self.env.set_solution(sol)
-            # self.env.display_explored(explored)
-            # self.env.display_solution()
+            self.env.display_explored(explored)
+            self.env.display_solution()
         elif self.searchType == 'UCS':
             path, explored = uniform_cost_search(self, True)
             sol = path.solution()
             self.env.set_solution(sol)
-            # self.env.display_explored(explored)
-            # self.env.display_solution()
+            self.env.display_explored(explored)
+            self.env.display_solution()
         elif self.searchType == 'A*':
             path, explored = astar_search(self)
             sol = path.solution()
             self.env.set_solution(sol)
-            # self.env.display_explored(explored)
-            # self.env.display_solution()
+            self.env.display_explored(explored)
+            self.env.display_solution()
         else:
             raise 'NameError'
 
@@ -313,6 +313,7 @@ class Gui(VacuumEnvironment):
     def display_solution(self):
         sol_copy = self.solution.copy()
         x, y = self.agent.location
+        xi, yi = self.agent.location
         while len(sol_copy) > 0:
             command = sol_copy.pop()
             if command == 'UP':
@@ -324,26 +325,23 @@ class Gui(VacuumEnvironment):
             elif command == 'RIGHT':
                 x += 1
 
-
-            if self.buttons[y][x]['bg'] == 'grey':
-                self.buttons[y][x].config(bg='yellow', text='D', state='normal')
-            else:
-                self.buttons[y][x].config(bg='yellow', text='', state='normal')
+            if self.buttons[y][x]['text'] != 'D' and self.buttons[y][x]['text'] != 'W':
+                self.buttons[y][x].config(bg='yellow')
         
         lbl = agent_label(self.agent)
-        loc = self.agent.location
-        self.buttons[loc[1]][loc[0]].config(bg='white', text=lbl, state='normal')
-        
+        self.buttons[yi][xi].config(bg='white', text=lbl, state='normal')
 
     def display_explored(self, explored):
         """display explored slots in a light pink color"""
         if len(self.explored) > 0:     # means we have explored list from previous search. So need to clear their visual fist
             for (x, y) in self.explored:
-                self.buttons[y][x].config(bg='white', text='', state='normal')
+                if self.buttons[y][x]['text'] != 'W' and self.buttons[y][x]['text'] != 'D':
+                    self.buttons[y][x].config(bg='white', text='', state='normal')
 
         self.explored = explored
         for (x, y) in explored:
-            self.buttons[y][x].config(bg='pink', text='')
+            if self.buttons[y][x]['text'] != 'W' and self.buttons[y][x]['text'] != 'D':
+                self.buttons[y][x].config(bg='pink')
 
     def add_agent(self, agt, loc):
         """add an agent to the GUI"""
