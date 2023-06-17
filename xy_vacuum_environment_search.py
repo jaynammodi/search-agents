@@ -6,6 +6,7 @@ import sys
 import copy
 import math
 from utils import PriorityQueue
+import time
 
 """
 1- BFS: Breadth first search. Using tree or graph version, whichever makes more sense for the problem
@@ -44,16 +45,28 @@ class VacuumPlanning(Problem):
         super().__init__(self.state)
         if self.searchType == 'BFS':
             path, explored = breadth_first_graph_search(self)
-            print(path, explored)
             sol = path.solution()
             self.env.set_solution(sol)
-            self.env.display_explored(explored)
+            # self.env.display_explored(explored)
+            # self.env.display_solution()
         elif self.searchType == 'DFS':
-            self.env.solution = depth_first_graph_search(self).solution()
+            path, explored = depth_first_graph_search(self)
+            sol = path.solution()
+            self.env.set_solution(sol)
+            # self.env.display_explored(explored)
+            # self.env.display_solution()
         elif self.searchType == 'UCS':
-            self.env.solution = best_first_graph_search(self, lambda node: node.path_cost).solution()
+            path, explored = uniform_cost_search(self, True)
+            sol = path.solution()
+            self.env.set_solution(sol)
+            # self.env.display_explored(explored)
+            # self.env.display_solution()
         elif self.searchType == 'A*':
-            self.env.solution = astar_search(self.searchAgent).solution()
+            path, explored = astar_search(self)
+            sol = path.solution()
+            self.env.set_solution(sol)
+            # self.env.display_explored(explored)
+            # self.env.display_solution()
         else:
             raise 'NameError'
 
@@ -106,15 +119,19 @@ class VacuumPlanning(Problem):
         """ Given state and action, return a new state that is the result of the action.
         Action is assumed to be a valid action in the state """
         new_state = list(state)
-        print(state, action)
+        # print(state, action)
         if action == 'UP':
-            new_state[1] += 1
+            if self.env.is_inbounds((new_state[0], new_state[1] + 1)):
+                new_state[1] += 1
         elif action == 'DOWN':
-            new_state[1] -= 1
+            if self.env.is_inbounds((new_state[0], new_state[1] - 1)):
+                new_state[1] -= 1
         elif action == 'LEFT':
-            new_state[0] -= 1
+            if self.env.is_inbounds((new_state[0] - 1, new_state[1])):
+                new_state[0] -= 1
         elif action == 'RIGHT':
-            new_state[0] += 1
+            if self.env.is_inbounds((new_state[0] + 1, new_state[1])):
+                new_state[0] += 1
         else:
             if self.env.dirtCount == 0:
                 new_state = state
@@ -123,7 +140,7 @@ class VacuumPlanning(Problem):
                 print("Unknown action: ", action)
             
 
-        print("result(", state, action ,"):", new_state)
+        # print("result(", state, action ,"):", new_state)
         return tuple(new_state)
 
     def goal_test(self, state):
@@ -144,10 +161,10 @@ class VacuumPlanning(Problem):
 
         a = abs(state1[0] - state2[0])
         b = abs(state1[1] - state2[1])
-        c = abs(int(z1 - z2))
+        z = abs(int(z1 - z2))
 
-        c = a^2 + b^2 + c^2
-        print("path_cost(", c, state1, action, state2 ,"): ", c)
+        c += a^2 + b^2 + z^2
+        # print("path_cost(", c, state1, action, state2 ,"): ", c)
         return c
 
 
@@ -155,8 +172,16 @@ class VacuumPlanning(Problem):
         """ to be used for A* search. Return the heuristic value for a given state. For this problem use minimum Manhattan
         distance to all the dirty rooms + absolute value of height distance as described above in path_cost() function. .
     """
-        print("h (heuristic): to be defined and implemented by students.")
-        return 0
+        state1 = self.agent.location
+        state2 = node.state
+        a = abs(state1[0] - state2[0])
+        b = abs(state1[1] - state2[1])
+        z1 = math.sqrt(state1[0] * state1[0] + state1[1] * state1[1])
+        z2 = math.sqrt(state2[0] * state2[0] + state2[1] * state2[1])
+        z = abs(int(z1 - z2))
+        h = a + b + z
+        # print("h (heuristic): ", h)
+        return h
 
 # ______________________________________________________________________________
 
@@ -283,17 +308,42 @@ class Gui(VacuumEnvironment):
 
     def set_solution(self, sol):
         self.solution = list(reversed(sol))
+        print("solution is {}".format(self.solution))
 
+    def display_solution(self):
+        sol_copy = self.solution.copy()
+        x, y = self.agent.location
+        while len(sol_copy) > 0:
+            command = sol_copy.pop()
+            if command == 'UP':
+                y += 1
+            elif command == 'DOWN':
+                y -= 1
+            elif command == 'LEFT':
+                x -= 1
+            elif command == 'RIGHT':
+                x += 1
+
+
+            if self.buttons[y][x]['bg'] == 'grey':
+                self.buttons[y][x].config(bg='yellow', text='D', state='normal')
+            else:
+                self.buttons[y][x].config(bg='yellow', text='', state='normal')
+        
+        lbl = agent_label(self.agent)
+        loc = self.agent.location
+        self.buttons[loc[1]][loc[0]].config(bg='white', text=lbl, state='normal')
+        
 
     def display_explored(self, explored):
         """display explored slots in a light pink color"""
         if len(self.explored) > 0:     # means we have explored list from previous search. So need to clear their visual fist
             for (x, y) in self.explored:
-                self.buttons[y][x].config(bg='white')
+                self.buttons[y][x].config(bg='white', text='', state='normal')
 
         self.explored = explored
         for (x, y) in explored:
-            self.buttons[y][x].config(bg='pink')
+            self.buttons[y][x].config(bg='pink', text='')
 
     def add_agent(self, agt, loc):
         """add an agent to the GUI"""
@@ -409,17 +459,20 @@ class Gui(VacuumEnvironment):
             self.execute_action(self.agent, move)
 
 
-    def run(self, delay=2):
+    def run(self, steps=1000, delay=0.2):
         """Run the Environment for given number of time steps,"""
-        print("run: to be implemented by students")
+        i = 1
+        while i <= steps and not self.done:
+            i += 1
+            self.update_env()
+            time.sleep(delay)
+
+        if (i == steps):
+            print("Done running for ", i, " steps")
+        # print("Done running for ", i, " steps")
 
     def reset_env(self):
         """Resets the GUI and agents environment to the initial clear state."""
-        self.running = False
-        NumSteps_label.config(text=str(0))
-        TotalCost_label.config(text=str(0))
-
-
         for j, btn_row in enumerate(self.buttons):
             for i, btn in enumerate(btn_row):
                 if (j != 0 and j != len(self.buttons) - 1) and (i != 0 and i != len(btn_row) - 1):
@@ -428,7 +481,25 @@ class Gui(VacuumEnvironment):
                             self.delete_thing(thing)
                     btn.config(bg='white', text='', state='normal')
 
+        self.agent = None
+        self.dirtCount = 0
+        self.stepCount = 0
+        self.solution = []
+        self.searchAgent = None
+        self.running = False
+        self.done = False
+        NumSteps_label.config(text=str(0))
+        TotalCost_label.config(text=str(0))
+        searchTypeStr.set(searchTypes[0])
+        
         self.setupTestEnvironment()
+
+        theAgent = XYSearchAgent(program=XYSearchAgentProgram, loc=(hig//2, wid//2))
+        x, y = theAgent.location
+        self.add_agent(theAgent, (y, x))
+
+
+
 
 
 """
@@ -448,6 +519,7 @@ class XYSearchAgent(Agent):
         self.direction = Direction("up")
         self.searchType = searchTypes[0]
         self.stepCount = 0
+        self.holding = []
 
 
 if __name__ == "__main__":

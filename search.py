@@ -243,12 +243,12 @@ def depth_first_graph_search(problem):
     If two paths reach a state, only use the first one.
     """
     frontier = [(Node(problem.initial))]  # Stack
-
     explored = set()
     while frontier:
         node = frontier.pop()
         if problem.goal_test(node.state):
-            return node
+            # return node
+            return node, explored
         explored.add(node.state)
         frontier.extend(child for child in node.expand(problem)
                         if child.state not in explored and child not in frontier)
@@ -273,7 +273,7 @@ def best_first_graph_search(problem, f, display=False):
         if problem.goal_test(node.state):
             if display:
                 print(len(explored), "paths have been expanded and", len(frontier), "paths remain in the frontier")
-            return node
+            return node, explored
         explored.add(node.state)
         for child in node.expand(problem):
             if child.state not in explored and child not in frontier:
