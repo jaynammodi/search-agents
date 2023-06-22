@@ -44,7 +44,3 @@ function searchWithTurn(problem):
         
     return failure (no path found)
 ```
-
-To implement this in the visual rendering part, you can modify the rendering logic to consider the agent's orientation when determining its movement. For example, if the agent is facing north, a movement "UP" would correspond to a forward movement, "LEFT" would correspond to a left turn, and so on. The rendering logic should update the agent's position and orientation accordingly.
-
-Implementing this solution for a specific search algorithm like BFS_Turn would involve modifying the algorithm's logic to include the agent's orientation and turning effort. The pseudocode above can serve as a starting point for implementing BFS with turn. You would need to adapt the code to handle the specific data structures and functions used in the algorithm implementation.
