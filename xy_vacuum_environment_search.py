@@ -44,31 +44,40 @@ class VacuumPlanning(Problem):
         self.state = env.agent.location
         super().__init__(self.state)
         if self.searchType == 'BFS':
+            print("Generating BFS Solution")
             path, explored = breadth_first_graph_search(self)
             sol = path.solution()
             self.env.set_solution(sol)
             self.env.display_explored(explored)
             self.env.display_solution()
         elif self.searchType == 'DFS':
+            print("Generating DFS Solution")
             path, explored = depth_first_graph_search(self)
             sol = path.solution()
             self.env.set_solution(sol)
             self.env.display_explored(explored)
             self.env.display_solution()
         elif self.searchType == 'UCS':
-            path, explored = uniform_cost_search(self, True)
+            print("Generating UCS Solution")
+            # path, explored = uniform_cost_search(self, True)
+            path, explored = uniform_cost_search(self, False)
             sol = path.solution()
             self.env.set_solution(sol)
             self.env.display_explored(explored)
             self.env.display_solution()
         elif self.searchType == 'A*':
+            print("Generating A* Solution")
             path, explored = astar_search(self)
             sol = path.solution()
             self.env.set_solution(sol)
             self.env.display_explored(explored)
             self.env.display_solution()
         else:
-            raise 'NameError'
+            print("No search type selected. Please choose valid Seach Type")
+            self.env.set_solution([])
+            self.env.display_explored([])
+            self.env.display_solution()
+            # raise 'NameError'
 
 
     def generateNextSolution(self):
@@ -109,10 +118,7 @@ class VacuumPlanning(Problem):
                     if self.find_direction(thng.location) in possible_actions:
                         possible_actions.remove(self.find_direction(thng.location))
 
-            
-
-        # print("possible actions:", possible_actions)
-
+        # print("possible actions:", possible_actions, self.agent.location)
         return possible_actions
 
     def result(self, state, action):
@@ -308,7 +314,7 @@ class Gui(VacuumEnvironment):
 
     def set_solution(self, sol):
         self.solution = list(reversed(sol))
-        print("solution is {}".format(self.solution))
+        # print("solution is {}".format(self.solution))
 
     def display_solution(self):
         sol_copy = self.solution.copy()
@@ -326,7 +332,7 @@ class Gui(VacuumEnvironment):
                 x += 1
 
             if self.buttons[y][x]['text'] != 'D' and self.buttons[y][x]['text'] != 'W':
-                self.buttons[y][x].config(bg='yellow')
+                self.buttons[y][x].config(bg='orange')
         
         lbl = agent_label(self.agent)
         self.buttons[yi][xi].config(bg='white', text=lbl, state='normal')
@@ -408,7 +414,7 @@ class Gui(VacuumEnvironment):
         self.buttons[yi][xi].config(text='')
         xf, yf = agent.location
         self.buttons[yf][xf].config(text=agent_label(agent))
-        print("agent moved to location (", agent.location[0], agent.location[1], ") and direction is ", agent.direction.direction)
+        # print("agent moved to location (", agent.location[0], agent.location[1], ") and direction is ", agent.direction.direction)
         """Determines the action the agent performs."""
         # print("execute_actin: to be done by students")
 
@@ -443,6 +449,9 @@ class Gui(VacuumEnvironment):
         """
         if env.dirtCount == 0:
             print("Everything is clean. DONE!")
+            env.set_solution([])
+            env.display_explored([])
+            env.display_solution()
             self.done = True
             return
 
