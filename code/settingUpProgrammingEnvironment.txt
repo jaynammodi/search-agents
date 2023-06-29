@@ -1,0 +1,14 @@
+1- Install PyCharm latest community edition
+2- Make sure you have Python 3.9 as the interpreter set up for PyCharm.
+3- Make sure the path to the above Python interpreter is added to your Computer's system path.
+4- Create a folder for all of this course's projects. Let's call it CMPT310Proj.
+5- Copy the content of this assignment to this folder.
+6- Launch PyCharm and open folder CMPT310Proj.
+7- Test that you can run Python from Terminal in PyCharm.
+8- Install the packages required for all the projects by running >pip install -r requirements.txt.
+9- Fix any errors you may see in step 8. 
+10- If all goes well, you should be able to run xy_vacuum_environment.py by clicking on > button a the top right of PyCharm window, as well as by issuing the following command from PyCharm Terminal: > python xy_vacuum_environment.py. Make sure both methods work. The result is the 2d grid block.
+You are all set!
+
+
+
